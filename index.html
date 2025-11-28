@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #FF6900, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 20px rgba(255, 107, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            color: #b0b0b0;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #FF6900;
+            padding-bottom: 15px;
+        }
+        
+        .nav-tabs button {
+            background: linear-gradient(135deg, #FF6900, #FF8C00);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 107, 0, 0.4);
+        }
+        
+        .nav-tabs button.active {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .controls {
+            background: rgba(30, 40, 70, 0.8);
+            border: 1px solid #FF6900;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #FFD700;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 25, 50, 0.9);
+            border: 2px solid #FF6900;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        select:hover, input:hover {
+            border-color: #FFD700;
+            background: rgba(20, 25, 50, 1);
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #00D9FF;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+        
+        select option {
+            background: #1a1f3a;
+            color: #e0e0e0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button.btn-primary {
+            background: linear-gradient(135deg, #FF6900, #FF8C00);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        button.btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 0, 0.4);
+        }
+        
+        button.btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 107, 0, 0.2);
+            border-top: 4px solid #FF6900;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .plot-container {
+            background: rgba(30, 40, 70, 0.8);
+            border: 1px solid #FF6900;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .table-container {
+            background: rgba(30, 40, 70, 0.8);
+            border: 1px solid #FF6900;
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #FF6900, #FF8C00);
+            padding: 15px;
+            text-align: left;
+            color: white;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #FF6900;
+            color: #e0e0e0;
+        }
+        
+        tr:hover {
+            background: rgba(255, 107, 0, 0.1);
+        }
+        
+        .error {
+            background: rgba(255, 50, 50, 0.1);
+            border: 2px solid #FF3232;
+            color: #FF6B6B;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .success {
+            background: rgba(50, 255, 100, 0.1);
+            border: 2px solid #32FF64;
+            color: #64FF96;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .multi-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(20, 25, 50, 0.9);
+            border: 2px solid #FF6900;
+            border-radius: 8px;
+        }
+        
+        .multi-select label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            color: #e0e0e0;
+            font-weight: normal;
+        }
+        
+        .multi-select input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .info-box {
+            background: rgba(0, 217, 255, 0.1);
+            border-left: 4px solid #00D9FF;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            color: #b0d9e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏎️ F1 Analytics Dashboard</h1>
+            <p class="subtitle">Advanced Formula 1 Data Analysis & Visualization</p>
+            <div style="margin-top: 20px;">
+                <label style="color: #FFD700; font-size: 1em; margin-right: 10px;">Choose Your Team:</label>
+                <select id="team-selector" onchange="changeTeamTheme()" style="padding: 10px 20px; font-size: 1em; background: rgba(20, 25, 50, 0.9); border: 2px solid #FF6900; border-radius: 8px; color: #e0e0e0; cursor: pointer;">
+                    <option value="default">Default Theme</option>
+                    <option value="red_bull">Red Bull Racing</option>
+                    <option value="ferrari">Ferrari</option>
+                    <option value="mercedes">Mercedes</option>
+                    <option value="mclaren">McLaren</option>
+                    <option value="aston_martin">Aston Martin</option>
+                    <option value="alpine">Alpine</option>
+                    <option value="williams">Williams</option>
+                    <option value="rb">RB (AlphaTauri)</option>
+                    <option value="kick_sauber">Kick Sauber</option>
+                    <option value="haas">Haas F1 Team</option>
+                </select>
+            </div>
+        </header>
+        
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="switchTab('speed')">Speed Analysis</button>
+            <button class="tab-button" onclick="switchTab('laps')">Lap Comparison</button>
+            <button class="tab-button" onclick="switchTab('distribution')">Laptime Distribution</button>
+            <button class="tab-button" onclick="switchTab('strategy')">Tyre Strategy</button>
+            <button class="tab-button" onclick="switchTab('team')">Team Pace</button>
+            <button class="tab-button" onclick="switchTab('replay')">Race Replay</button>
+            <button class="tab-button" onclick="switchTab('championship')">Championship</button>
+        </div>
+        
+        <!-- Speed Analysis Tab -->
+        <div id="speed" class="tab-content active">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Speed Comparison</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="speed-season" onchange="updateSpeedEvents()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="speed-round" onchange="updateSpeedDrivers()"></select>
+                    </div>
+                    <div>
+                        <label>Session Type</label>
+                        <select id="speed-session" onchange="updateSpeedDrivers()">
+                            <option value="FP1">Free Practice 1</option>
+                            <option value="FP2">Free Practice 2</option>
+                            <option value="FP3">Free Practice 3</option>
+                            <option value="Q" selected>Qualifying</option>
+                            <option value="R">Race</option>
+                            <option value="S">Sprint</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label>Select Drivers (Ctrl+Click for multiple)</label>
+                    <div id="speed-drivers" class="multi-select"></div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateSpeedPlot()">Generate Plot</button>
+                </div>
+            </div>
+            <div class="loading" id="speed-loading">
+                <div class="spinner"></div>
+                <p>Generating speed analysis...</p>
+            </div>
+            <div class="error" id="speed-error"></div>
+            <div class="plot-container" id="speed-plot"></div>
+        </div>
+        
+        <!-- Lap Comparison Tab -->
+        <div id="laps" class="tab-content">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Lap-by-Lap Comparison</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="lap-season" onchange="updateLapEvents()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="lap-round" onchange="updateLapDrivers()"></select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div>
+                        <label>Reference Driver</label>
+                        <select id="lap-ref-driver"></select>
+                    </div>
+                    <div>
+                        <label>Target Driver</label>
+                        <select id="lap-target-driver"></select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateLapPlot()">Generate Plot</button>
+                </div>
+            </div>
+            <div class="loading" id="lap-loading">
+                <div class="spinner"></div>
+                <p>Generating lap comparison...</p>
+            </div>
+            <div class="error" id="lap-error"></div>
+            <div class="plot-container" id="lap-plot"></div>
+        </div>
+        
+        <!-- Laptime Distribution Tab -->
+        <div id="distribution" class="tab-content">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Laptime Distribution</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="dist-season" onchange="updateDistEvents()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="dist-round" onchange="updateDistDrivers()"></select>
+                    </div>
+                </div>
+                <div>
+                    <label>Select Drivers (Ctrl+Click for multiple)</label>
+                    <div id="dist-drivers" class="multi-select"></div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateDistPlot()">Generate Plot</button>
+                </div>
+            </div>
+            <div class="loading" id="dist-loading">
+                <div class="spinner"></div>
+                <p>Generating laptime distribution...</p>
+            </div>
+            <div class="error" id="dist-error"></div>
+            <div class="plot-container" id="dist-plot"></div>
+        </div>
+        
+        <!-- Tyre Strategy Tab -->
+        <div id="strategy" class="tab-content">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Tyre Strategy Analysis</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="strategy-season" onchange="updateStrategyEvents()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="strategy-round"></select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateStrategyPlot()">Generate Plot</button>
+                </div>
+            </div>
+            <div class="loading" id="strategy-loading">
+                <div class="spinner"></div>
+                <p>Generating strategy analysis...</p>
+            </div>
+            <div class="error" id="strategy-error"></div>
+            <div class="plot-container" id="strategy-plot"></div>
+        </div>
+        
+        <!-- Team Pace Tab -->
+        <div id="team" class="tab-content">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Team Pace Distribution</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="team-season" onchange="updateTeamEvents()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="team-round"></select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateTeamPlot()">Generate Plot</button>
+                </div>
+            </div>
+            <div class="loading" id="team-loading">
+                <div class="spinner"></div>
+                <p>Generating team pace analysis...</p>
+            </div>
+            <div class="error" id="team-error"></div>
+            <div class="plot-container" id="team-plot"></div>
+        </div>
+        
+        <!-- Race Replay Tab -->
+        <div id="replay" class="tab-content">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Race Replay</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="replay-season" onchange="updateReplayEvents()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="replay-round"></select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="loadRaceReplay()">Load Race</button>
+                </div>
+                <div class="info-box" style="margin-top: 15px;">
+                    <strong>🎮 Controls:</strong><br>
+                    • SPACE: Play/Pause<br>
+                    • ← →: Previous/Next Lap<br>
+                    • Speed: Adjust playback speed (0.5x - 4x)
+                </div>
+            </div>
+            <div class="loading" id="replay-loading">
+                <div class="spinner"></div>
+                <p>Loading race data...</p>
+            </div>
+            <div class="error" id="replay-error"></div>
+            <div id="replay-container" style="display: none;">
+                <div style="background: rgba(30, 40, 70, 0.8); border: 1px solid #FF6900; border-radius: 12px; padding: 20px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="color: white;">
+                            <h3 id="replay-event-name" style="margin: 0; color: #FFD700;">Race</h3>
+                            <p style="margin: 5px 0 0 0;">Lap <span id="replay-current-lap">1</span> / <span id="replay-total-laps">50</span></p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="replayPrevLap()">⏮ Prev</button>
+                            <button class="btn-primary" onclick="toggleReplayPlay()" id="replay-play-btn">▶ Play</button>
+                            <button class="btn-primary" onclick="replayNextLap()">Next ⏭</button>
+                            <button class="btn-primary" onclick="cycleReplaySpeed()" id="replay-speed-btn">1x</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="plot-container">
+                    <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 20px;">
+                        <div>
+                            <canvas id="track-canvas" style="border: 2px solid #FF6900; border-radius: 8px; background: #1a1a1a;"></canvas>
+                        </div>
+                        <div>
+                            <h3 style="color: #FFD700; margin-top: 0;">Leaderboard</h3>
+                            <div id="leaderboard" style="max-height: 600px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Championship Tab -->
+        <div id="championship" class="tab-content">
+            <div class="controls">
+                <h2 style="color: #FFD700; margin-bottom: 20px;">Championship Standings</h2>
+                <div class="control-group">
+                    <div>
+                        <label>Season</label>
+                        <select id="champ-season" onchange="updateChampRounds()"></select>
+                    </div>
+                    <div>
+                        <label>Round</label>
+                        <select id="champ-round"></select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateChampionship()">Load Standings</button>
+                </div>
+            </div>
+            <div class="loading" id="champ-loading">
+                <div class="spinner"></div>
+                <p>Loading championship data...</p>
+            </div>
+            <div class="error" id="champ-error"></div>
+            <div class="table-container" id="champ-table"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Team color themes
+        const teamThemes = {
+            default: {
+                primary: '#FF6900',
+                secondary: '#FFD700',
+                accent: '#00D9FF',
+                gradient1: '#FF6900',
+                gradient2: '#FFD700',
+                bgGradient1: '#0a0e27',
+                bgGradient2: '#1a1f3a',
+                cardBg: 'rgba(30, 40, 70, 0.8)',
+                cardBgDark: 'rgba(20, 25, 50, 0.9)',
+                plotBg: '#1a1a1a',
+                plotFg: '#2a2a2a'
+            },
+            red_bull: {
+                primary: '#0600EF',
+                secondary: '#DC0000',
+                accent: '#FCD700',
+                gradient1: '#0600EF',
+                gradient2: '#DC0000',
+                bgGradient1: '#0a0a2e',
+                bgGradient2: '#1a0a1a',
+                cardBg: 'rgba(20, 20, 60, 0.8)',
+                cardBgDark: 'rgba(15, 10, 40, 0.9)',
+                plotBg: '#1a1a2e',
+                plotFg: '#2a2a3e'
+            },
+            ferrari: {
+                primary: '#DC0000',
+                secondary: '#FFF500',
+                accent: '#FFFFFF',
+                gradient1: '#DC0000',
+                gradient2: '#8B0000',
+                bgGradient1: '#2e0a0a',
+                bgGradient2: '#1a0000',
+                cardBg: 'rgba(60, 20, 20, 0.8)',
+                cardBgDark: 'rgba(40, 10, 10, 0.9)',
+                plotBg: '#2e1a1a',
+                plotFg: '#3e2a2a'
+            },
+            mercedes: {
+                primary: '#00D2BE',
+                secondary: '#C0C0C0',
+                accent: '#000000',
+                gradient1: '#00D2BE',
+                gradient2: '#006660',
+                bgGradient1: '#0a1e1c',
+                bgGradient2: '#0a2e2a',
+                cardBg: 'rgba(20, 50, 48, 0.8)',
+                cardBgDark: 'rgba(10, 35, 33, 0.9)',
+                plotBg: '#1a2e2c',
+                plotFg: '#2a3e3c'
+            },
+            mclaren: {
+                primary: '#FF8700',
+                secondary: '#47C7FC',
+                accent: '#FFFFFF',
+                gradient1: '#FF8700',
+                gradient2: '#47C7FC',
+                bgGradient1: '#2e1a0a',
+                bgGradient2: '#0a1a2e',
+                cardBg: 'rgba(50, 35, 20, 0.8)',
+                cardBgDark: 'rgba(35, 25, 15, 0.9)',
+                plotBg: '#2e2a1a',
+                plotFg: '#3e3a2a'
+            },
+            aston_martin: {
+                primary: '#006F62',
+                secondary: '#CEDC00',
+                accent: '#FFFFFF',
+                gradient1: '#006F62',
+                gradient2: '#CEDC00',
+                bgGradient1: '#0a1e1a',
+                bgGradient2: '#1a2e0a',
+                cardBg: 'rgba(20, 50, 45, 0.8)',
+                cardBgDark: 'rgba(10, 35, 30, 0.9)',
+                plotBg: '#1a2e2a',
+                plotFg: '#2a3e3a'
+            },
+            alpine: {
+                primary: '#0090FF',
+                secondary: '#FF1E7A',
+                accent: '#FFFFFF',
+                gradient1: '#0090FF',
+                gradient2: '#FF1E7A',
+                bgGradient1: '#0a1a2e',
+                bgGradient2: '#2e0a1a',
+                cardBg: 'rgba(20, 35, 60, 0.8)',
+                cardBgDark: 'rgba(10, 25, 45, 0.9)',
+                plotBg: '#1a2a3e',
+                plotFg: '#2a3a4e'
+            },
+            williams: {
+                primary: '#005AFF',
+                secondary: '#00A0DE',
+                accent: '#FFFFFF',
+                gradient1: '#005AFF',
+                gradient2: '#00A0DE',
+                bgGradient1: '#0a0a2e',
+                bgGradient2: '#0a1a3a',
+                cardBg: 'rgba(20, 30, 70, 0.8)',
+                cardBgDark: 'rgba(10, 20, 50, 0.9)',
+                plotBg: '#1a1a3e',
+                plotFg: '#2a2a4e'
+            },
+            rb: {
+                primary: '#2B4562',
+                secondary: '#6692FF',
+                accent: '#FFFFFF',
+                gradient1: '#2B4562',
+                gradient2: '#6692FF',
+                bgGradient1: '#0a1520',
+                bgGradient2: '#152030',
+                cardBg: 'rgba(25, 40, 60, 0.8)',
+                cardBgDark: 'rgba(15, 30, 45, 0.9)',
+                plotBg: '#1a2530',
+                plotFg: '#2a3540'
+            },
+            kick_sauber: {
+                primary: '#00E701',
+                secondary: '#52E500',
+                accent: '#FFFFFF',
+                gradient1: '#00E701',
+                gradient2: '#004D00',
+                bgGradient1: '#0a1e0a',
+                bgGradient2: '#0a2e0a',
+                cardBg: 'rgba(20, 50, 20, 0.8)',
+                cardBgDark: 'rgba(10, 35, 10, 0.9)',
+                plotBg: '#1a2e1a',
+                plotFg: '#2a3e2a'
+            },
+            haas: {
+                primary: '#B6BABD',
+                secondary: '#ED1C24',
+                accent: '#FFFFFF',
+                gradient1: '#B6BABD',
+                gradient2: '#ED1C24',
+                bgGradient1: '#1a1a1a',
+                bgGradient2: '#2e1a1a',
+                cardBg: 'rgba(50, 40, 40, 0.8)',
+                cardBgDark: 'rgba(35, 30, 30, 0.9)',
+                plotBg: '#2a2a2a',
+                plotFg: '#3a3a3a'
+            }
+        };
+
+        function changeTeamTheme() {
+            const theme = document.getElementById('team-selector').value;
+            const colors = teamThemes[theme];
+            
+            // Update body background gradient
+            document.body.style.background = `linear-gradient(135deg, ${colors.bgGradient1} 0%, ${colors.bgGradient2} 100%)`;
+            
+            // Update gradient in h1
+            const h1 = document.querySelector('h1');
+            h1.style.background = `linear-gradient(135deg, ${colors.gradient1}, ${colors.gradient2})`;
+            h1.style.webkitBackgroundClip = 'text';
+            h1.style.webkitTextFillColor = 'transparent';
+            h1.style.backgroundClip = 'text';
+            
+            // Update all card backgrounds
+            document.querySelectorAll('.controls, .plot-container, .table-container').forEach(el => {
+                el.style.background = colors.cardBg;
+                el.style.borderColor = colors.primary;
+            });
+            
+            // Update select and input backgrounds
+            document.querySelectorAll('select, input').forEach(el => {
+                el.style.background = colors.cardBgDark;
+                el.style.borderColor = colors.primary;
+            });
+            
+            // Update multi-select background
+            document.querySelectorAll('.multi-select').forEach(el => {
+                el.style.background = colors.cardBgDark;
+                el.style.borderColor = colors.primary;
+            });
+            
+            // Update nav tabs border
+            document.querySelector('.nav-tabs').style.borderBottomColor = colors.primary;
+            
+            // Update all buttons
+            document.querySelectorAll('.nav-tabs button').forEach(btn => {
+                if (!btn.classList.contains('active')) {
+                    btn.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+                    btn.style.color = '#fff';
+                }
+            });
+            
+            document.querySelectorAll('.nav-tabs button.active').forEach(btn => {
+                btn.style.background = `linear-gradient(135deg, ${colors.secondary}, ${colors.gradient2})`;
+                btn.style.color = '#000';
+            });
+            
+            document.querySelectorAll('.btn-primary').forEach(btn => {
+                btn.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+            });
+            
+            // Update table headers
+            document.querySelectorAll('th').forEach(th => {
+                th.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+            });
+            
+            // Update table row borders
+            document.querySelectorAll('td').forEach(td => {
+                td.style.borderBottomColor = colors.primary;
+            });
+            
+            // Update labels
+            document.querySelectorAll('label').forEach(label => {
+                if (!label.querySelector('input[type="checkbox"]')) {
+                    label.style.color = colors.secondary;
+                }
+            });
+            
+            // Update spinner
+            document.querySelectorAll('.spinner').forEach(spinner => {
+                spinner.style.borderColor = `${colors.primary}33`;
+                spinner.style.borderTopColor = colors.primary;
+            });
+            
+            // Update hover effects with a style tag
+            let styleTag = document.getElementById('dynamic-theme-styles');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'dynamic-theme-styles';
+                document.head.appendChild(styleTag);
+            }
+            
+            styleTag.textContent = `
+                select:hover, input:hover {
+                    border-color: ${colors.secondary} !important;
+                    background: ${colors.cardBgDark} !important;
+                }
+                select:focus, input:focus {
+                    border-color: ${colors.accent} !important;
+                    box-shadow: 0 0 15px ${colors.accent}4d !important;
+                }
+                .nav-tabs button:hover {
+                    box-shadow: 0 5px 20px ${colors.primary}66 !important;
+                }
+                .btn-primary:hover {
+                    box-shadow: 0 5px 20px ${colors.primary}66 !important;
+                }
+                tr:hover {
+                    background: ${colors.primary}1a !important;
+                }
+            `;
+            
+            // Save preference
+            localStorage.setItem('f1-team-theme', theme);
+        }
+        
+        // Load saved theme on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('f1-team-theme');
+            if (savedTheme) {
+                document.getElementById('team-selector').value = savedTheme;
+                changeTeamTheme();
+            }
+        });
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSelects();
+        });
+        
+        async function initializeSelects() {
+            try {
+                const response = await fetch('/api/seasons');
+                const seasons = await response.json();
+                const current = new Date().getFullYear();
+                
+                ['speed-season', 'lap-season', 'strategy-season', 'team-season', 'champ-season', 'dist-season', 'replay-season'].forEach(id => {
+                    const select = document.getElementById(id);
+                    select.innerHTML = seasons.map(s => 
+                        `<option value="${s}" ${s === current ? 'selected' : ''}>${s}</option>`
+                    ).join('');
+                });
+                
+                // Initialize events for each tab
+                await updateSpeedEvents();
+                await updateLapEvents();
+                await updateDistEvents();
+                await updateStrategyEvents();
+                await updateTeamEvents();
+                await updateReplayEvents();
+                await updateChampRounds();
+            } catch (error) {
+                console.error('Error initializing:', error);
+            }
+        }
+        
+        async function updateSpeedEvents() {
+            const season = document.getElementById('speed-season').value;
+            await updateEvents(season, 'speed-round');
+            await updateSpeedDrivers();
+        }
+        
+        async function updateLapEvents() {
+            const season = document.getElementById('lap-season').value;
+            await updateEvents(season, 'lap-round');
+            await updateLapDrivers();
+        }
+        
+        async function updateDistEvents() {
+            const season = document.getElementById('dist-season').value;
+            await updateEvents(season, 'dist-round');
+            await updateDistDrivers();
+        }
+        
+        async function updateStrategyEvents() {
+            const season = document.getElementById('strategy-season').value;
+            await updateEvents(season, 'strategy-round');
+        }
+        
+        async function updateTeamEvents() {
+            const season = document.getElementById('team-season').value;
+            await updateEvents(season, 'team-round');
+        }
+        
+        async function updateReplayEvents() {
+            const season = document.getElementById('replay-season').value;
+            await updateEvents(season, 'replay-round');
+        }
+        
+        async function updateEvents(season, selectId) {
+            try {
+                const response = await fetch(`/api/events/${season}`);
+                const events = await response.json();
+                const select = document.getElementById(selectId);
+                select.innerHTML = events.map(([num, name]) => 
+                    `<option value="${num}">${name}</option>`
+                ).join('');
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+        
+        async function updateSpeedDrivers() {
+            const season = document.getElementById('speed-season').value;
+            const round = document.getElementById('speed-round').value;
+            const session = document.getElementById('speed-session').value;
+            
+            if (!round) return;
+            
+            await updateDrivers(season, round, session, 'speed-drivers', true);
+        }
+        
+        async function updateLapDrivers() {
+            const season = document.getElementById('lap-season').value;
+            const round = document.getElementById('lap-round').value;
+            
+            if (!round) return;
+            
+            await updateDrivers(season, round, 'R', 'lap-ref-driver', false);
+            await updateDrivers(season, round, 'R', 'lap-target-driver', false);
+        }
+        
+        async function updateDistDrivers() {
+            const season = document.getElementById('dist-season').value;
+            const round = document.getElementById('dist-round').value;
+            
+            if (!round) return;
+            
+            await updateDrivers(season, round, 'R', 'dist-drivers', true);
+        }
+        
+        async function updateDrivers(season, round, session, selectId, isMulti) {
+            try {
+                const response = await fetch(`/api/drivers/${season}/${round}/${session}`);
+                const drivers = await response.json();
+                const element = document.getElementById(selectId);
+                
+                if (isMulti) {
+                    element.innerHTML = drivers.map(d => 
+                        `<label><input type="checkbox" value="${d.code}"> ${d.code}</label>`
+                    ).join('');
+                } else {
+                    element.innerHTML = drivers.map(d => 
+                        `<option value="${d.code}">${d.code}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading drivers:', error);
+            }
+        }
+        
+        async function updateChampRounds() {
+            const season = document.getElementById('champ-season').value;
+            await updateEvents(season, 'champ-round');
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        async function generateSpeedPlot() {
+            const drivers = Array.from(document.querySelectorAll('#speed-drivers input:checked'))
+                .map(cb => cb.value);
+            
+            if (drivers.length < 2) {
+                showError('speed-error', 'Please select at least 2 drivers');
+                return;
+            }
+            
+            showLoading('speed-loading', true);
+            showError('speed-error', '');
+            
+            try {
+                const theme = document.getElementById('team-selector').value;
+                const response = await fetch('/plot/speed-comparison', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        year: parseInt(document.getElementById('speed-season').value),
+                        round: parseInt(document.getElementById('speed-round').value),
+                        session_type: document.getElementById('speed-session').value,
+                        drivers: drivers,
+                        theme: theme
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.plot) {
+                    document.getElementById('speed-plot').innerHTML = `<img src="data:image/png;base64,${data.plot}" alt="Speed Comparison">`;
+                } else {
+                    showError('speed-error', data.error || 'Error generating plot');
+                }
+            } catch (error) {
+                showError('speed-error', 'Network error: ' + error.message);
+            } finally {
+                showLoading('speed-loading', false);
+            }
+        }
+        
+        async function generateLapPlot() {
+            const refDriver = document.getElementById('lap-ref-driver').value;
+            const targetDriver = document.getElementById('lap-target-driver').value;
+            
+            if (!refDriver || !targetDriver) {
+                showError('lap-error', 'Please select both drivers');
+                return;
+            }
+            
+            showLoading('lap-loading', true);
+            showError('lap-error', '');
+            
+            try {
+                const theme = document.getElementById('team-selector').value;
+                const response = await fetch('/plot/lap-comparison', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        year: parseInt(document.getElementById('lap-season').value),
+                        round: parseInt(document.getElementById('lap-round').value),
+                        ref_driver: refDriver,
+                        target_driver: targetDriver,
+                        theme: theme
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.plot) {
+                    document.getElementById('lap-plot').innerHTML = `<img src="data:image/png;base64,${data.plot}" alt="Lap Comparison">`;
+                } else {
+                    showError('lap-error', data.error || 'Error generating plot');
+                }
+            } catch (error) {
+                showError('lap-error', 'Network error: ' + error.message);
+            } finally {
+                showLoading('lap-loading', false);
+            }
+        }
+        
+        async function generateStrategyPlot() {
+            showLoading('strategy-loading', true);
+            showError('strategy-error', '');
+            
+            try {
+                const theme = document.getElementById('team-selector').value;
+                const response = await fetch('/plot/tyre-strategy', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        year: parseInt(document.getElementById('strategy-season').value),
+                        round: parseInt(document.getElementById('strategy-round').value),
+                        theme: theme
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.plot) {
+                    document.getElementById('strategy-plot').innerHTML = `<img src="data:image/png;base64,${data.plot}" alt="Tyre Strategy">`;
+                } else {
+                    showError('strategy-error', data.error || 'Error generating plot');
+                }
+            } catch (error) {
+                showError('strategy-error', 'Network error: ' + error.message);
+            } finally {
+                showLoading('strategy-loading', false);
+            }
+        }
+        
+        async function generateTeamPlot() {
+            showLoading('team-loading', true);
+            showError('team-error', '');
+            
+            try {
+                const theme = document.getElementById('team-selector').value;
+                const response = await fetch('/plot/team-pace', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        year: parseInt(document.getElementById('team-season').value),
+                        round: parseInt(document.getElementById('team-round').value),
+                        theme: theme
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.plot) {
+                    document.getElementById('team-plot').innerHTML = `<img src="data:image/png;base64,${data.plot}" alt="Team Pace">`;
+                } else {
+                    showError('team-error', data.error || 'Error generating plot');
+                }
+            } catch (error) {
+                showError('team-error', 'Network error: ' + error.message);
+            } finally {
+                showLoading('team-loading', false);
+            }
+        }
+        
+        async function generateDistPlot() {
+            const drivers = Array.from(document.querySelectorAll('#dist-drivers input:checked'))
+                .map(cb => cb.value);
+            
+            if (drivers.length < 1) {
+                showError('dist-error', 'Please select at least 1 driver');
+                return;
+            }
+            
+            showLoading('dist-loading', true);
+            showError('dist-error', '');
+            
+            try {
+                const theme = document.getElementById('team-selector').value;
+                const response = await fetch('/plot/laptime-distribution', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        year: parseInt(document.getElementById('dist-season').value),
+                        round: parseInt(document.getElementById('dist-round').value),
+                        drivers: drivers,
+                        theme: theme
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.plot) {
+                    document.getElementById('dist-plot').innerHTML = `<img src="data:image/png;base64,${data.plot}" alt="Laptime Distribution">`;
+                } else {
+                    showError('dist-error', data.error || 'Error generating plot');
+                }
+            } catch (error) {
+                showError('dist-error', 'Network error: ' + error.message);
+            } finally {
+                showLoading('dist-loading', false);
+            }
+        }
+        
+        async function generateChampionship() {
+            showLoading('champ-loading', true);
+            showError('champ-error', '');
+            
+            try {
+                const response = await fetch('/api/championship', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        season: parseInt(document.getElementById('champ-season').value),
+                        round: parseInt(document.getElementById('champ-round').value)
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error) {
+                    showError('champ-error', data.error);
+                } else {
+                    const html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Driver</th>
+                                    <th>Points</th>
+                                    <th>Max Points</th>
+                                    <th>Can Win</th>
+                                    <th>Points Needed/Race</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(d => `
+                                    <tr>
+                                        <td>${d.position}</td>
+                                        <td>${d.name}</td>
+                                        <td>${d.points}</td>
+                                        <td>${d.max_points}</td>
+                                        <td>${d.can_win}</td>
+                                        <td>${d.per_race}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('champ-table').innerHTML = html;
+                }
+            } catch (error) {
+                showError('champ-error', 'Network error: ' + error.message);
+            } finally {
+                showLoading('champ-loading', false);
+            }
+        }
+        
+        function showLoading(id, show) {
+            document.getElementById(id).style.display = show ? 'block' : 'none';
+        }
+        
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            if (msg) {
+                el.textContent = msg;
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        }
+        
+        // Race Replay functionality
+        let replayData = null;
+        let currentLap = 1;
+        let currentFrame = 0;
+        let isPlaying = false;
+        let playbackSpeed = 1;
+        let replayInterval = null;
+        let animationFrame = null;
+        let trackScaleData = null;
+        
+        async function loadRaceReplay() {
+            showLoading('replay-loading', true);
+            showError('replay-error', '');
+            document.getElementById('replay-container').style.display = 'none';
+            
+            try {
+                const year = parseInt(document.getElementById('replay-season').value);
+                const round = parseInt(document.getElementById('replay-round').value);
+                
+                const response = await fetch(`/api/race-replay-data/${year}/${round}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError('replay-error', data.error);
+                    return;
+                }
+                
+                replayData = data;
+                currentLap = 1;
+                isPlaying = false;
+                
+                document.getElementById('replay-event-name').textContent = data.event_name;
+                document.getElementById('replay-total-laps').textContent = data.total_laps;
+                document.getElementById('replay-container').style.display = 'block';
+                
+                initializeTrackCanvas();
+                updateReplayDisplay();
+                
+            } catch (error) {
+                showError('replay-error', 'Error loading race data: ' + error.message);
+            } finally {
+                showLoading('replay-loading', false);
+            }
+        }
+        
+        function initializeTrackCanvas() {
+            const canvas = document.getElementById('track-canvas');
+            const theme = teamThemes[document.getElementById('team-selector').value];
+            
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            drawTrack();
+        }
+        
+        function drawTrack() {
+            const canvas = document.getElementById('track-canvas');
+            const ctx = canvas.getContext('2d');
+            const theme = teamThemes[document.getElementById('team-selector').value];
+            
+            // Clear canvas
+            ctx.fillStyle = theme.plotBg || '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (!replayData || !replayData.track) return;
+            
+            const trackX = replayData.track.x;
+            const trackY = replayData.track.y;
+            
+            // Find min/max for scaling
+            const minX = Math.min(...trackX);
+            const maxX = Math.max(...trackX);
+            const minY = Math.min(...trackY);
+            const maxY = Math.max(...trackY);
+            
+            const padding = 50;
+            const scaleX = (canvas.width - padding * 2) / (maxX - minX);
+            const scaleY = (canvas.height - padding * 2) / (maxY - minY);
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Draw track
+            ctx.strokeStyle = theme.primary || '#FF6900';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            for (let i = 0; i < trackX.length; i++) {
+                const x = padding + (trackX[i] - minX) * scale;
+                const y = padding + (trackY[i] - minY) * scale;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw start/finish line
+            const startX = padding + (trackX[0] - minX) * scale;
+            const startY = padding + (trackY[0] - minY) * scale;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(startX - 5, startY - 15, 10, 30);
+            ctx.fillStyle = '#000000';
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(startX - 5, startY - 15 + i * 10, 10, 5);
+            }
+            
+            // Draw driver positions
+            drawDriverPositions(minX, maxX, minY, maxY, scale, padding);
+        }
+        
+        function drawDriverPositions(minX, maxX, minY, maxY, scale, padding) {
+            if (!replayData) return;
+            
+            const canvas = document.getElementById('track-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Draw each driver at their current position
+            replayData.drivers.forEach(driver => {
+                // Find telemetry for current lap
+                const lapTelemetry = driver.telemetry.find(t => t.lap === currentLap);
+                if (!lapTelemetry || !lapTelemetry.x || lapTelemetry.x.length === 0) return;
+                
+                // Get position based on current frame
+                const totalFrames = lapTelemetry.x.length;
+                const frameIndex = Math.min(currentFrame, totalFrames - 1);
+                
+                const x = padding + (lapTelemetry.x[frameIndex] - minX) * scale;
+                const y = padding + (lapTelemetry.y[frameIndex] - minY) * scale;
+                
+                // Draw driver dot with glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = driver.color;
+                ctx.fillStyle = driver.color;
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw border
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                
+                // Draw driver abbreviation with background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(x - 15, y - 25, 30, 14);
+                
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(driver.abbr, x, y - 15);
+            });
+        }
+        
+        function updateReplayDisplay() {
+            document.getElementById('replay-current-lap').textContent = currentLap;
+            drawTrack();
+            updateLeaderboard();
+        }
+        
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard');
+            const theme = teamThemes[document.getElementById('team-selector').value];
+            
+            // Get drivers for current lap
+            const driversAtLap = [];
+            replayData.drivers.forEach(driver => {
+                const lapTel = driver.telemetry.find(t => t.lap === currentLap);
+                if (lapTel && lapTel.position) {
+                    driversAtLap.push({
+                        abbr: driver.abbr,
+                        color: driver.color,
+                        position: lapTel.position,
+                        compound: lapTel.compound
+                    });
+                }
+            });
+            
+            // Sort by position
+            driversAtLap.sort((a, b) => a.position - b.position);
+            
+            // Render leaderboard
+            const compoundColors = {
+                'SOFT': '#FF1493',
+                'MEDIUM': '#FFD700',
+                'HARD': '#FFFFFF',
+                'INTERMEDIATE': '#00FF00',
+                'WET': '#0099FF',
+                'UNKNOWN': '#888888'
+            };
+            
+            leaderboard.innerHTML = driversAtLap.map(d => `
+                <div style="display: flex; align-items: center; padding: 10px; margin-bottom: 5px; background: rgba(20, 25, 50, 0.9); border-left: 4px solid ${d.color}; border-radius: 4px;">
+                    <div style="width: 30px; font-weight: bold; color: #FFD700;">${d.position}</div>
+                    <div style="width: 50px; font-weight: bold; color: white;">${d.abbr}</div>
+                    <div style="flex: 1; text-align: right;">
+                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${compoundColors[d.compound]}; border: 1px solid white;"></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function toggleReplayPlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('replay-play-btn');
+            
+            if (isPlaying) {
+                btn.textContent = '⏸ Pause';
+                startReplayLoop();
+            } else {
+                btn.textContent = '▶ Play';
+                stopReplayLoop();
+            }
+        }
+        
+        function startReplayLoop() {
+            stopReplayLoop(); // Clear any existing interval
+            
+            const animate = () => {
+                if (!isPlaying) return;
+                
+                // Get max frames for current lap
+                let maxFrames = 0;
+                replayData.drivers.forEach(driver => {
+                    const lapTel = driver.telemetry.find(t => t.lap === currentLap);
+                    if (lapTel && lapTel.x) {
+                        maxFrames = Math.max(maxFrames, lapTel.x.length);
+                    }
+                });
+                
+                // Increment frame
+                currentFrame += Math.ceil(playbackSpeed * 5); // Adjust speed
+                
+                if (currentFrame >= maxFrames) {
+                    // Move to next lap
+                    currentFrame = 0;
+                    if (currentLap < replayData.total_laps) {
+                        currentLap++;
+                    } else {
+                        // Race finished
+                        stopReplayLoop();
+                        isPlaying = false;
+                        document.getElementById('replay-play-btn').textContent = '▶ Play';
+                        return;
+                    }
+                }
+                
+                updateReplayDisplay();
+                animationFrame = requestAnimationFrame(animate);
+            };
+            
+            animationFrame = requestAnimationFrame(animate);
+        }
+        
+        function stopReplayLoop() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+        }
+        
+        function replayPrevLap() {
+            stopReplayLoop();
+            isPlaying = false;
+            document.getElementById('replay-play-btn').textContent = '▶ Play';
+            
+            if (currentLap > 1) {
+                currentLap--;
+                currentFrame = 0;
+                updateReplayDisplay();
+            }
+        }
+        
+        function replayNextLap() {
+            stopReplayLoop();
+            isPlaying = false;
+            document.getElementById('replay-play-btn').textContent = '▶ Play';
+            
+            if (currentLap < replayData.total_laps) {
+                currentLap++;
+                currentFrame = 0;
+                updateReplayDisplay();
+            }
+        }
+        
+        function cycleReplaySpeed() {
+            const speeds = [0.5, 1, 2, 4];
+            const currentIndex = speeds.indexOf(playbackSpeed);
+            playbackSpeed = speeds[(currentIndex + 1) % speeds.length];
+            document.getElementById('replay-speed-btn').textContent = playbackSpeed + 'x';
+            
+            // Restart animation if playing
+            if (isPlaying) {
+                stopReplayLoop();
+                setTimeout(() => startReplayLoop(), 50);
+            }
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('replay').classList.contains('active')) {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    toggleReplayPlay();
+                } else if (e.code === 'ArrowLeft') {
+                    e.preventDefault();
+                    replayPrevLap();
+                } else if (e.code === 'ArrowRight') {
+                    e.preventDefault();
+                    replayNextLap();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
