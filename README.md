@@ -1,76 +1,74 @@
-# f1-analysis
-F1 Race Analytics Dashboard
+# F1 Race Analytics Dashboard
 
-A Python-based Formula 1 analytics project that uses FastF1 data to analyze race sessions, driver performance, lap data, and telemetry.
+A Python-based Formula 1 analytics project that uses FastF1 data to
+analyze race sessions, driver performance, lap data, and telemetry.
 
-This project fetches official F1 session data, caches it locally, and presents insights through a simple web interface.
+This project fetches official F1 session data, caches it locally, and
+presents insights through a simple web interface.
+
+------------------------------------------------------------------------
 
 ## What This Project Does
 
-Loads race and qualifying session data
+-   Loads race and qualifying session data\
+-   Uses cached FastF1 data for faster performance\
+-   Extracts:
+    -   Lap times
+    -   Position data
+    -   Weather data
+    -   Driver information
+    -   Session status
+-   Displays processed results through an HTML template
 
-Uses cached FastF1 data for faster performance
+Raw F1 timing data to structured analytics to frontend display.
 
-Extracts:
+------------------------------------------------------------------------
 
-Lap times
+## Tech Stack
 
-Position data
+-   Python\
+-   FastF1\
+-   Flask\
+-   HTML templates\
+-   SQLite cache (via FastF1)
 
-Weather data
+------------------------------------------------------------------------
 
-Driver information
+## Project Structure
 
-Session status
+proj/  
+├── project.py Main application logic\
+├── templates/\
+│ └── index.html Frontend page\
+│\
+├── cache/ FastF1 session cache\
+│ ├── 2024/\
+│ ├── 2025/\
+│ └── 2026/
 
-Displays processed results through an HTML template
+------------------------------------------------------------------------
 
-Basically:
-Raw F1 timing data → structured analytics → simple frontend display.
+## How to Run
 
-🛠️ Tech Stack
+1.  Install dependencies:
 
-Python
+    pip install fastf1 flask pandas matplotlib
 
-FastF1
+2.  Run the application:
 
-Flask (for web interface)
+    python project.py
 
-HTML templates
+3.  Open your browser:
 
-SQLite cache (via FastF1)
+    http://127.0.0.1:5000
 
-📂 Project Structure
-proj/
-│
-├── project.py              # Main application logic
-├── templates/
-│   └── index.html          # Frontend page
-│
-├── cache/                  # FastF1 session cache
-│   ├── 2024/
-│   ├── 2025/
-│   └── 2026/
-What the cache folder means
+------------------------------------------------------------------------
 
-FastF1 downloads official session data once and stores it locally as .ff1pkl files.
+## Example Use Case
 
-Example:
+-   Compare driver lap times\
+-   Analyze weather impact\
+-   Track position changes\
+-   Study race pace consistency
 
-2025-05-25_Monaco_Grand_Prix/
-    └── 2025-05-25_Race/
-        ├── car_data.ff1pkl
-        ├── weather_data.ff1pkl
-        ├── lap_count.ff1pkl
 
-So next time you run the same session → it loads instantly.
-
-⚙️ How to Run the Project
-1. Install dependencies
-pip install fastf1 flask pandas matplotlib
-2. Run the application
-python project.py
-3. Open in browser
-
-Go to:
-http://127.0.0.1:5000
